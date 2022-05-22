@@ -4,8 +4,8 @@ export interface ILeafNode {
 }
 export interface INode {
     sun: number;
-    left: INode | ILeafNode;
-    right: INode | ILeafNode;
+    left?: INode | ILeafNode;
+    right?: INode | ILeafNode;
 }
 
 export function isInstanceOfLeafNode(node: any): node is ILeafNode {
@@ -18,4 +18,11 @@ export function isInstanceOfNode(node: any): node is INode {
 export enum NodeDirType {
     LEFT = 1,
     RIGHT = 0
+}
+
+
+// string type helper fun
+export function reversString(str: string): string {
+    return str.split('').reverse().join('');
+
 }

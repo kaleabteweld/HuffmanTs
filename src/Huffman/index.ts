@@ -1,4 +1,4 @@
-import { ILeafNode, INode, NodeDirType, isInstanceOfLeafNode, isInstanceOfNode } from "../types";
+import { ILeafNode, INode, NodeDirType, isInstanceOfLeafNode, isInstanceOfNode, reversString } from "../types";
 import Stack from "../Stack";
 
 export default class Huffman {
@@ -46,11 +46,32 @@ export default class Huffman {
 
 
 
-        for (let index = 0; index < (arr.length); index++) {
-            const element1: ILeafNode = arr[index];
-            const element2: ILeafNode = arr[(++index % arr.length)];
 
-            const parentNode: INode = {
+        var parentNode: INode;
+        for (let index = 0; index != (arr.length); index++) {
+
+
+            var element1: ILeafNode = arr[index];
+            var element2Index: number = ((++index));
+
+            // console.log("element1: ", index);
+            // console.log("element2: ", element2Index);
+
+            if (element2Index >= arr.length) {
+
+                parentNode = {
+                    left: element1,
+                    sun: element1.freq,
+                }
+                nodes.push(parentNode);
+                break;
+            }
+            const element2: ILeafNode = arr[element2Index];
+
+
+
+
+            parentNode = {
                 left: element1,
                 right: element2,
                 sun: element1.freq + element2.freq,
@@ -82,6 +103,7 @@ export default class Huffman {
         return rootNode;
     }
 
+    /// deprecate
     public GetHuffmanCode(node?: INode): string {
 
         /// if reverse extract tree use it else use internal tree
@@ -244,6 +266,60 @@ export default class Huffman {
 
     }
 
+    public HuffmanCode(node?: INode, charArr?: string[], start: number = 0): string {
+
+        /// if reverse extract tree use it else use internal tree
+        const rootNode = node == undefined ? this.rootNode : node;
+
+        // if rootNode is undefined return empty string
+        if (rootNode == undefined) { this.huffmenCode = ""; return "" };
+
+        if (charArr == undefined) charArr = this.toBeCompared.split("")
+
+
+        var code: string = "";
+
+        if (start == charArr.length) return code;
+
+        let HuffmanCode: string = this.GetHuffmanCodeR(rootNode, charArr[start]);
+
+        // console.log("[+] for ", charArr[start], " HuffmanCode: ", HuffmanCode)
+
+        HuffmanCode = HuffmanCode.split("").join(",");
+
+        code += reversString(HuffmanCode).slice(0, -1);
+
+
+        return code + this.HuffmanCode(rootNode, charArr, ++start);
+
+
+    }
+
+    public GetHuffmanCodeR(rootNode?: INode | ILeafNode, char?: string, dir?: NodeDirType): string {
+
+        var code: string = "";
+
+        if (rootNode != null && isInstanceOfLeafNode(rootNode)) {
+            if (rootNode.key == char) {
+                code = dir == NodeDirType.LEFT ? NodeDirType.LEFT.toString() : NodeDirType.RIGHT.toString();
+            }
+            return code
+
+        } else if (rootNode != null && isInstanceOfNode(rootNode)) {
+
+            var leftCode: string = this.GetHuffmanCodeR(rootNode.left, char, NodeDirType.LEFT);
+            if (leftCode.length != 0) { code += leftCode + NodeDirType.LEFT.toString(); return code; };
+
+            var rightCode: string = this.GetHuffmanCodeR(rootNode.right, char, NodeDirType.RIGHT);
+            if (rightCode.length != 0) { code += rightCode + NodeDirType.RIGHT.toString(); return code; };
+
+        }
+        return code;
+
+
+
+    }
+
     /// compress (get huffman code)
 
     /// first IleafNode[] from input string
@@ -258,16 +334,17 @@ export default class Huffman {
         // console.log("[+] Sorted ILeafNode[] ", Lnodes);
 
         let nodes: INode[] = this.GetAllNodesFromLeafNode(Lnodes);
-        console.log("[+] nodes ", nodes);
+        // console.log("[+] nodes ", nodes);
 
         this.GenerateHuffmanTree(nodes);
+        // console.log("[+] huffman tree ", this.rootNode);
         // console.log("[+] huffman tree ", this.rootNode?.left);
         // console.log("[+] huffman tree ", (this.rootNode?.left as INode).left);
         // console.log("[+] huffman tree ", (this.rootNode?.left as INode).right);
 
 
 
-        return this.GetHuffmanCode();
+        return this.HuffmanCode();
     }
 
     public deCompress(code: string, root?: INode | ILeafNode | undefined): string {
